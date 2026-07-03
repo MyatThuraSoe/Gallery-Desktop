@@ -1,0 +1,138 @@
+/* 
+ * Modern Gallery Application - Dark Theme Base 
+ * Uses CSS Variables for easy theming
+ */
+
+.root {
+    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
+    -fx-font-size: 14px;
+    
+    /* Color Palette - Dark Mode */
+    -bg-primary: #1e1e1e;
+    -bg-secondary: #252526;
+    -bg-tertiary: #333333;
+    -text-primary: #ffffff;
+    -text-secondary: #cccccc;
+    -accent-color: #0078d4;
+    -accent-hover: #006cc1;
+    -border-color: #3e3e42;
+    -selection-color: #3a3d41;
+    
+    -fx-background-color: -bg-primary;
+    -fx-text-fill: -text-primary;
+}
+
+/* Scrollbar Styling */
+.scroll-bar {
+    -fx-background-color: -bg-primary;
+    -fx-pref-width: 12px;
+}
+.scroll-bar .thumb {
+    -fx-background-color: -bg-tertiary;
+    -fx-background-radius: 6px;
+}
+.scroll-bar .thumb:hover {
+    -fx-background-color: -text-secondary;
+}
+
+/* Toolbar */
+.toolbar {
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: transparent transparent -border-color transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 12;
+    -fx-spacing: 10;
+}
+
+.tool-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text-secondary;
+    -fx-cursor: hand;
+    -fx-padding: 6 10;
+    -fx-background-radius: 4px;
+}
+.tool-button:hover {
+    -fx-background-color: -bg-tertiary;
+    -fx-text-fill: -text-primary;
+}
+.tool-button:pressed {
+    -fx-background-color: -selection-color;
+}
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: transparent -border-color transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 10;
+}
+
+.tree-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text-secondary;
+}
+.tree-cell:selected {
+    -fx-background-color: -selection-color;
+    -fx-text-fill: -text-primary;
+}
+.tree-cell:hover {
+    -fx-background-color: -bg-tertiary;
+}
+
+/* Grid View */
+.grid-view {
+    -fx-background-color: -bg-primary;
+    -fx-padding: 10;
+}
+.thumbnail-card {
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-color;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-padding: 4;
+    -fx-spacing: 4;
+    -fx-alignment: center;
+}
+.thumbnail-card:selected {
+    -fx-border-color: -accent-color;
+    -fx-background-color: -selection-color;
+}
+.thumbnail-label {
+    -fx-text-fill: -text-secondary;
+    -fx-font-size: 11px;
+    -fx-text-overrun: ellipsis;
+}
+
+/* Image Viewer */
+.viewer-container {
+    -fx-background-color: #111111;
+    -fx-alignment: center;
+}
+
+/* Status Bar */
+.status-bar {
+    -fx-background-color: -accent-color;
+    -fx-padding: 4 12;
+    -fx-spacing: 15;
+}
+.status-item {
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+}
+
+/* Buttons */
+.button-primary {
+    -fx-background-color: -accent-color;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 6 16;
+    -fx-background-radius: 4;
+}
+.button-primary:hover {
+    -fx-background-color: -accent-hover;
+}
