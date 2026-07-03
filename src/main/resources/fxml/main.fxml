@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<!-- Main Application Layout -->
+<!-- Uses BorderPane for classic desktop app structure -->
+<BorderPane xmlns="http://javafx.com/javafx/21" 
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:id="rootPane"
+            styleClass="root">
+    
+    <!-- TOP: Toolbar with actions -->
+    <top>
+        <ToolBar styleClass="toolbar">
+            <Button fx:id="btnOpenFolder" text="📁 Open Folder" styleClass="tool-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button fx:id="btnPrevious" text="◀ Prev" styleClass="tool-button"/>
+            <Button fx:id="btnNext" text="Next ▶" styleClass="tool-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button fx:id="btnRotateLeft" text="↺" styleClass="tool-button"/>
+            <Button fx:id="btnRotateRight" text="↻" styleClass="tool-button"/>
+            <Button fx:id="btnFlip" text="⇄" styleClass="tool-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button fx:id="btnZoomOut" text="−" styleClass="tool-button"/>
+            <Label fx:id="lblZoomLevel" text="100%" styleClass="tool-button"/>
+            <Button fx:id="btnZoomIn" text="+" styleClass="tool-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button fx:id="btnFitWidth" text="Fit Width" styleClass="tool-button"/>
+            <Button fx:id="btnFitScreen" text="Fit Screen" styleClass="tool-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button fx:id="btnSlideshow" text="▶ Slideshow" styleClass="tool-button"/>
+            <Button fx:id="btnFullscreen" text="⛶ Fullscreen" styleClass="tool-button"/>
+            
+            <!-- Spacer -->
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <!-- Search -->
+            <TextField fx:id="txtSearch" promptText="Search images..." prefWidth="200"/>
+        </ToolBar>
+    </top>
+    
+    <!-- LEFT: Sidebar with folder tree and filters -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="250" spacing="10">
+            <Label text="Folders" style="-fx-font-weight: bold;"/>
+            <TreeView fx:id="folderTree" VBox.vgrow="ALWAYS"/>
+            
+            <Separator/>
+            
+            <Label text="Filters" style="-fx-font-weight: bold;"/>
+            <VBox spacing="5">
+                <CheckBox fx:id="chkLandscape" text="Landscape"/>
+                <CheckBox fx:id="chkPortrait" text="Portrait"/>
+                <CheckBox fx:id="chkSquare" text="Square"/>
+                <CheckBox fx:id="chkFavorites" text="Favorites"/>
+            </VBox>
+            
+            <Separator/>
+            
+            <Label text="Grid Layout" style="-fx-font-weight: bold;"/>
+            <ComboBox fx:id="cmbGridLayout" prefWidth="150"/>
+            
+            <Label text="Thumbnail Size"/>
+            <Slider fx:id="sliderThumbnailSize" min="64" max="512" value="128" 
+                    showTickLabels="true" showTickMarks="true"/>
+        </VBox>
+    </left>
+    
+    <!-- CENTER: Main content area (Grid or Image Viewer) -->
+    <center>
+        <StackPane fx:id="contentPane">
+            <!-- Grid View -->
+            <ScrollPane fx:id="gridScroll" fitToWidth="true" styleClass="grid-view">
+                <FlowPane fx:id="gridContainer" hgap="10" vgap="10" 
+                          styleClass="grid-view"/>
+            </ScrollPane>
+            
+            <!-- Image Viewer (hidden by default) -->
+            <StackPane fx:id="imageViewer" visible="false" managed="false" 
+                       styleClass="viewer-container">
+                <ImageView fx:id="mainImageView" preserveRatio="true"/>
+                
+                <!-- Navigation overlays -->
+                <Button fx:id="btnPrevOverlay" text="◀" 
+                        style="-fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-font-size: 24px;"
+                        StackPane.alignment="CENTER_LEFT"
+                        translateX="-50" visible="false"/>
+                <Button fx:id="btnNextOverlay" text="▶" 
+                        style="-fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-font-size: 24px;"
+                        StackPane.alignment="CENTER_RIGHT"
+                        translateX="50" visible="false"/>
+            </StackPane>
+        </StackPane>
+    </center>
+    
+    <!-- RIGHT: Metadata panel (optional, can be toggled) -->
+    <right>
+        <VBox fx:id="metadataPanel" styleClass="sidebar" prefWidth="280" spacing="10" visible="false">
+            <Label text="Image Info" style="-fx-font-weight: bold; -fx-font-size: 16px;"/>
+            <Separator/>
+            <VBox spacing="8">
+                <Label fx:id="metaFilename" text="Filename: -"/>
+                <Label fx:id="metaResolution" text="Resolution: -"/>
+                <Label fx:id="metaFileSize" text="Size: -"/>
+                <Label fx:id="metaDateTaken" text="Date: -"/>
+                <Label fx:id="metaCamera" text="Camera: -"/>
+                <Label fx:id="metaISO" text="ISO: -"/>
+                <Label fx:id="metaLens" text="Lens: -"/>
+                <Label fx:id="metaGPS" text="GPS: -"/>
+            </VBox>
+        </VBox>
+    </right>
+    
+    <!-- BOTTOM: Status bar -->
+    <bottom>
+        <HBox styleClass="status-bar" alignment="CENTER_LEFT">
+            <Label fx:id="statusImageCount" text="0 images" styleClass="status-item"/>
+            <Separator orientation="VERTICAL"/>
+            <Label fx:id="statusSelected" text="None selected" styleClass="status-item"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="statusZoom" text="Zoom: 100%" styleClass="status-item"/>
+            <Separator orientation="VERTICAL"/>
+            <Label fx:id="statusMemory" text="Memory: -" styleClass="status-item"/>
+        </HBox>
+    </bottom>
+</BorderPane>
