@@ -72,6 +72,14 @@ public class ImageViewerComponent extends StackPane {
         setupInteractions();
     }
     
+    /**
+     * Gets the root node of this viewer (this StackPane itself).
+     * @return This ImageViewerComponent instance
+     */
+    public javafx.scene.Node getRoot() {
+        return this;
+    }
+    
     private void setupInteractions() {
         scrollPane.setOnScroll(event -> {
             double delta = event.getDeltaY();
