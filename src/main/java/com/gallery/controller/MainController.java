@@ -1,9 +1,13 @@
 package com.gallery.controller;
 
+import com.gallery.component.MetadataPanel;
 import com.gallery.config.AppConfig;
+import com.gallery.metadata.MetadataService;
 import com.gallery.model.ImageFile;
+import com.gallery.model.Metadata;
 import com.gallery.service.FolderScannerService;
 import com.gallery.service.ImageLoaderService;
+import com.gallery.service.SlideshowService;
 import com.gallery.service.ThumbnailService;
 import com.gallery.view.ImageViewerComponent;
 import com.gallery.view.VirtualizedGridView;
@@ -18,20 +22,29 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 /**
  * MainController - Coordinates all UI components and user interactions.
  * 
- * WHY: Central controller following MVC pattern. Keeps business logic in services,
- * UI rendering in views, and coordination here.
+ * WHY THIS DESIGN:
+ * - Central coordinator following MVC pattern
+ * - Business logic delegated to services (SlideshowService, ImageLoaderService, etc.)
+ * - UI rendering handled by view components
+ * - Uses callback patterns for loose coupling
+ * - Integrates SlideshowService and MetadataPanel for complete functionality
  */
 public class MainController implements Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(MainController.class);
     
     @FXML private BorderPane rootPane;
     @FXML private Button btnOpenFolder, btnPrevious, btnNext, btnRotateLeft, btnRotateRight;
@@ -47,24 +60,28 @@ public class MainController implements Initializable {
     @FXML private FlowPane gridContainer;
     @FXML private StackPane contentPane, imageViewer;
     @FXML private ImageViewerComponent mainImageView;
-    @FXML private VBox metadataPanel;
+    @FXML private ScrollPane metadataScrollPane;
     @FXML private Label metaFilename, metaResolution, metaFileSize, metaDateTaken;
     @FXML private Label metaCamera, metaISO, metaLens, metaGPS;
     
     private FolderScannerService folderScanner;
     private ThumbnailService thumbnailService;
     private ImageLoaderService imageLoader;
+    private SlideshowService slideshowService;
     
     private VirtualizedGridView gridView;
+    private MetadataPanel metadataPanel;
     
     private List<ImageFile> currentImages;
     private List<ImageFile> filteredImages;
     private ImageFile currentImage;
+    private Metadata currentMetadata;
     private int currentIndex = 0;
     private File currentFolder;
     private boolean isViewerMode = false;
     
     private AppConfig settings;
+    private AppConfig appConfig;
     
     private static final String[] GRID_LAYOUTS = {
         "Auto", "2 Columns", "3 Columns", "4 Columns", 
@@ -76,24 +93,70 @@ public class MainController implements Initializable {
         folderScanner = new FolderScannerService();
         thumbnailService = new ThumbnailService();
         imageLoader = new ImageLoaderService();
+        slideshowService = new SlideshowService(appConfig);
         
         settings = new AppConfig();
         settings.load();
+        appConfig = settings; // Alias for compatibility
         
         setupGridView();
+        setupMetadataPanel();
+        setupSlideshowCallbacks();
         initializeComboBoxes();
         setupEventHandlers();
         setupKeyboardShortcuts();
         applySettings();
         startMemoryMonitor();
+        
+        logger.info("MainController initialized successfully");
     }
     
     private void setupGridView() {
-        gridView = new VirtualizedGridView();
+        gridView = new VirtualizedGridView(appConfig);
         gridScroll.setContent(gridView);
         
         gridView.onImageSelected(this::onImageSelected);
         gridView.onImageDoubleClicked(this::openImageViewer);
+    }
+    
+    /**
+     * Initialize the metadata panel component.
+     * WHY: Separates metadata display logic into reusable component.
+     */
+    private void setupMetadataPanel() {
+        metadataPanel = new MetadataPanel();
+        if (metadataScrollPane != null) {
+            metadataScrollPane.setContent(metadataPanel);
+        }
+        logger.debug("Metadata panel initialized");
+    }
+    
+    /**
+     * Setup slideshow service callbacks.
+     * WHY: Decouples slideshow timing logic from UI navigation.
+     */
+    private void setupSlideshowCallbacks() {
+        slideshowService.setOnNextImageRequest(index -> {
+            Platform.runLater(() -> {
+                currentIndex = index;
+                ImageFile image = filteredImages.get(index);
+                if (isViewerMode) {
+                    imageLoader.loadImageAsync(image).thenAccept(img -> {
+                        Platform.runLater(() -> mainImageView.displayImage(image, img));
+                    });
+                } else {
+                    gridView.scrollToIndex(index);
+                    onImageSelected(image);
+                }
+            });
+        });
+        
+        slideshowService.setOnStateChange(playing -> {
+            Platform.runLater(() -> {
+                updateSlideshowButton();
+                statusMemory.setText(playing ? "Playing" : "Paused");
+            });
+        });
     }
     
     private void initializeComboBoxes() {
@@ -356,11 +419,31 @@ public class MainController implements Initializable {
     }
     
     private void toggleSlideshow() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Slideshow");
-        alert.setHeaderText(null);
-        alert.setContentText("Slideshow feature coming soon!");
-        alert.showAndWait();
+        if (filteredImages == null || filteredImages.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Slideshow");
+            alert.setHeaderText(null);
+            alert.setContentText("No images loaded. Please open a folder first.");
+            alert.showAndWait();
+            return;
+        }
+        
+        slideshowService.loadImages(filteredImages, currentIndex);
+        slideshowService.toggle();
+        logger.info("Slideshow toggled: {}", slideshowService.isPlaying() ? "playing" : "paused");
+    }
+    
+    /**
+     * Update the slideshow button appearance based on state.
+     */
+    private void updateSlideshowButton() {
+        if (slideshowService.isPlaying()) {
+            btnSlideshow.setText("⏸ Pause");
+            btnSlideshow.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+        } else {
+            btnSlideshow.setText("▶ Play");
+            btnSlideshow.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white;");
+        }
     }
     
     private void toggleFullscreen() {
@@ -415,7 +498,33 @@ public class MainController implements Initializable {
         statusImageCount.setText(filteredImages.size() + " images");
     }
     
+    /**
+     * Update metadata display using the MetadataPanel component.
+     * WHY: Delegates to reusable component and fetches full metadata asynchronously.
+     */
     private void updateMetadataDisplay(ImageFile image) {
+        if (metadataPanel != null) {
+            // Load metadata asynchronously to avoid blocking UI
+            CompletableFuture<com.gallery.metadata.Metadata> metadataFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return new MetadataService().extractMetadata(image);
+                } catch (Exception e) {
+                    logger.warn("Failed to extract metadata for {}: {}", image.getFileName(), e.getMessage());
+                    return null;
+                }
+            });
+            metadataFuture.thenAccept(metadata -> {
+                currentMetadata = convertToModelMetadata(metadata, image);
+                Platform.runLater(() -> {
+                    metadataPanel.displayMetadata(image, metadata);
+                });
+            }).exceptionally(ex -> {
+                logger.error("Error loading metadata", ex);
+                return null;
+            });
+        
+        }
+        // Also update legacy labels for backward compatibility
         metaFilename.setText("File: " + image.getFullName());
         metaResolution.setText("Resolution: " + image.getWidth() + " × " + image.getHeight());
         metaFileSize.setText("Size: " + formatFileSize(image.getFileSize()));

@@ -1,5 +1,6 @@
 package com.gallery.view;
 
+import com.gallery.config.AppConfig;
 import com.gallery.component.ThumbnailCard;
 import com.gallery.dto.ThumbnailDTO;
 import com.gallery.model.ImageFile;
@@ -8,6 +9,7 @@ import javafx.application.Platform;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.Node;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -35,7 +37,11 @@ public class VirtualizedGridView extends ScrollPane {
     private int firstVisibleRow = 0;
     private int lastVisibleRow = 0;
     
-    public VirtualizedGridView() {
+    /**
+     * Constructor that accepts AppConfig for future customization.
+     * @param appConfig Application configuration
+     */
+    public VirtualizedGridView(AppConfig appConfig) {
         container = new VBox(10);
         container.setStyle("-fx-padding: 10px;");
         
@@ -47,6 +53,14 @@ public class VirtualizedGridView extends ScrollPane {
         
         vvalueProperty().addListener((obs, oldVal, newVal) -> updateVisibleRows());
         widthProperty().addListener((obs, oldVal, newVal) -> updateLayout());
+    }
+    
+    /**
+     * Gets the root node of this view (this ScrollPane itself).
+     * @return This VirtualizedGridView instance
+     */
+    public Node getRoot() {
+        return this;
     }
     
     public void setData(List<ImageFile> images, ThumbnailService thumbnailService) {

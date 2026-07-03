@@ -333,4 +333,22 @@ public class AppConfig {
     public void setThumbnailSize(double size) {
         setDouble("thumbnail.size", size);
     }
+
+    /**
+     * Gets the slideshow interval in seconds.
+     * 
+     * @return The interval in seconds
+     */
+    public int getSlideshowInterval() {
+        return getInt(AppConstants.PREFS_SLIDESHOW_INTERVAL, AppConstants.DEFAULT_SLIDESHOW_INTERVAL_SEC);
+    }
+
+    /**
+     * Sets the slideshow interval in seconds.
+     * 
+     * @param seconds The interval in seconds
+     */
+    public void setSlideshowInterval(int seconds) {
+        setInt(AppConstants.PREFS_SLIDESHOW_INTERVAL, Math.max(1, seconds));
+    }
 }
